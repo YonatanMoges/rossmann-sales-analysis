@@ -125,5 +125,20 @@ def analyze_store_opening_hours(data):
 
     logging.info("Store opening hours analyzed.")
 
+def analyze_assortment_impact(data):
+    """Analyzes the impact of assortment type on sales."""
+    assortment_sales = data.groupby('Assortment')['Sales'].mean()
+
+    # Plot the results
+    plt.bar(assortment_sales.index, assortment_sales.values)
+    plt.xlabel('Assortment')
+    plt.ylabel('Average Sales')
+    plt.title('Impact of Assortment Type on Sales')
+    plt.show()
+
+    logging.info("Assortment impact analyzed.")
+
+
+
 
 
