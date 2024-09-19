@@ -55,5 +55,18 @@ def analyze_sales_behavior(data):
 
     logging.info("Sales behavior analyzed.")
 
+def analyze_seasonal_purchase_behaviors(data):
+    """Analyzes seasonal purchase behaviors."""
+    seasonal_sales = data.groupby('Month')['Sales'].mean()
+
+    # Plot the results
+    plt.plot(seasonal_sales.index, seasonal_sales.values)
+    plt.xlabel('Month')
+    plt.ylabel('Average Sales')
+    plt.title('Seasonal Purchase Behaviors')
+    plt.show()
+
+    logging.info("Seasonal purchase behaviors analyzed.")
+
 
 
