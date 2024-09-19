@@ -1,6 +1,7 @@
 import logging
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 # Clean and prepare data
 def clean_data(data):
@@ -12,6 +13,7 @@ def clean_data(data):
     data['Date'] = pd.to_datetime(data['Date'])
 
     # Create additional features
+    data['Hour'] = data['Date'].dt.hour
     data['Day'] = data['Date'].dt.day
     data['Month'] = data['Date'].dt.month
     data['Year'] = data['Date'].dt.year
@@ -89,6 +91,39 @@ def analyze_promo_impact(data):
 
     logging.info("Promotion impact analyzed.")
 
+def analyze_customer_behavior(data):
+    """Analyzes customer behavior during store opening and closing times."""
+    hourly_sales = data.groupby(['DayOfWeek', 'Hour'])['Sales'].mean().reset_index()
+
+    # Create a heatmap
+    sns.heatmap(hourly_sales.pivot_table(index='Hour', columns='DayOfWeek', values='Sales'))
+    plt.title('Hourly Sales by Day of Week')
+    plt.show()
+
+    logging.info("Customer behavior analyzed.")
+
+def analyze_store_opening_hours(data):
+    """Analyzes the impact of store opening hours on weekend sales."""
+    # Identify stores open on all weekdays
+    stores_open_all_weekdays = data.groupby('Store')['Open'].apply(lambda x: all(x == 1))
+
+    # Filter data for weekend sales and store groups
+    weekend_data = data[data['DayOfWeek'].isin(['Saturday', 'Sunday'])]
+    stores_all_weekdays_data = weekend_data[weekend_data['Store'].isin(stores_open_all_weekdays[stores_open_all_weekdays == True].index)]
+    stores_fewer_weekdays_data = weekend_data[~weekend_data['Store'].isin(stores_open_all_weekdays[stores_open_all_weekdays == True].index)]
+
+    # Calculate average weekend sales for each group
+    avg_weekend_sales_all_weekdays = stores_all_weekdays_data['Sales'].mean()
+    avg_weekend_sales_fewer_weekdays = stores_fewer_weekdays_data['Sales'].mean()
+
+    # Plot the results
+    plt.bar(['All Weekdays', 'Fewer Weekdays'], [avg_weekend_sales_all_weekdays, avg_weekend_sales_fewer_weekdays])
+    plt.xlabel('Store Opening Schedule')
+    plt.ylabel('Average Weekend Sales')
+    plt.title('Impact of Store Opening Hours on Weekend Sales')
+    plt.show()
+
+    logging.info("Store opening hours analyzed.")
 
 
 
