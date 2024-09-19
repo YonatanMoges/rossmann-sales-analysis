@@ -68,5 +68,14 @@ def analyze_seasonal_purchase_behaviors(data):
 
     logging.info("Seasonal purchase behaviors analyzed.")
 
+def analyze_correlation(data):
+    """Analyzes the correlation between sales and the number of customers."""
+    correlation = data['Sales'].corr(data['Customers'])
+
+    print("Correlation between Sales and Customers:", correlation)
+
+    logging.info("Correlation between Sales and Customers analyzed.")
+
+
 
 
