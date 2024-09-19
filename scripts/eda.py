@@ -76,6 +76,19 @@ def analyze_correlation(data):
 
     logging.info("Correlation between Sales and Customers analyzed.")
 
+def analyze_promo_impact(data):
+    """Analyzes the impact of promotions on sales."""
+    promo_sales = data.groupby('Promo')['Sales'].mean()
+
+    # Plot the results
+    plt.bar(promo_sales.index, promo_sales.values)
+    plt.xlabel('Promo')
+    plt.ylabel('Average Sales')
+    plt.title('Impact of Promotions on Sales')
+    plt.show()
+
+    logging.info("Promotion impact analyzed.")
+
 
 
 
