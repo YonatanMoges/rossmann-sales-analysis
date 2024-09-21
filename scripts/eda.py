@@ -2,6 +2,9 @@ import logging
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import scipy as scipy
+import numpy as np
+
 
 # Clean and prepare data
 def clean_data(data):
@@ -41,6 +44,7 @@ def analyze_promo_distribution(train_data, test_data):
 
 def analyze_sales_behavior(data):
     """Analyzes sales behavior before, during, and after holidays."""
+    # Filter data for holidays
     holiday_data = data[data['StateHoliday'] != 0]
 
     # Calculate average sales for different periods
@@ -54,8 +58,6 @@ def analyze_sales_behavior(data):
     plt.ylabel('Average Sales')
     plt.title('Sales Behavior Before, During, and After Holidays')
     plt.show()
-
-    logging.info("Sales behavior analyzed.")
 
 def analyze_seasonal_purchase_behaviors(data):
     """Analyzes seasonal purchase behaviors."""
@@ -108,20 +110,31 @@ def analyze_store_opening_hours(data):
     stores_open_all_weekdays = data.groupby('Store')['Open'].apply(lambda x: all(x == 1))
 
     # Filter data for weekend sales and store groups
-    weekend_data = data[data['DayOfWeek'].isin(['Saturday', 'Sunday'])]
+    weekend_data = data[(data['DayOfWeek'] == 5) | (data['DayOfWeek'] == 6)]  # Use specific day numbers for Saturday and Sunday
     stores_all_weekdays_data = weekend_data[weekend_data['Store'].isin(stores_open_all_weekdays[stores_open_all_weekdays == True].index)]
     stores_fewer_weekdays_data = weekend_data[~weekend_data['Store'].isin(stores_open_all_weekdays[stores_open_all_weekdays == True].index)]
 
-    # Calculate average weekend sales for each group
-    avg_weekend_sales_all_weekdays = stores_all_weekdays_data['Sales'].mean()
-    avg_weekend_sales_fewer_weekdays = stores_fewer_weekdays_data['Sales'].mean()
+    # Check for empty groups
+    if stores_all_weekdays_data.empty or stores_fewer_weekdays_data.empty:
+        print("One or both groups are empty. Check filtering criteria and data consistency.")
 
-    # Plot the results
-    plt.bar(['All Weekdays', 'Fewer Weekdays'], [avg_weekend_sales_all_weekdays, avg_weekend_sales_fewer_weekdays])
-    plt.xlabel('Store Opening Schedule')
-    plt.ylabel('Average Weekend Sales')
-    plt.title('Impact of Store Opening Hours on Weekend Sales')
-    plt.show()
+        # Further analysis
+        print("Stores open all weekdays:", stores_open_all_weekdays.sum())
+        print("Weekend data shape:", weekend_data.shape)
+        print("Open column values:", data['Open'].value_counts())
+        print("DayOfWeek column values:", data['DayOfWeek'].value_counts())
+
+    else:
+        # Calculate average weekend sales for each group
+        avg_weekend_sales_all_weekdays = stores_all_weekdays_data['Sales'].mean()
+        avg_weekend_sales_fewer_weekdays = stores_fewer_weekdays_data['Sales'].mean()
+
+        # Plot the results
+        plt.bar(['All Weekdays', 'Fewer Weekdays'], [avg_weekend_sales_all_weekdays, avg_weekend_sales_fewer_weekdays])
+        plt.xlabel('Store Opening Schedule')
+        plt.ylabel('Average Weekend Sales')
+        plt.title('Impact of Store Opening Hours on Weekend Sales')
+        plt.show()
 
     logging.info("Store opening hours analyzed.")
 
@@ -138,7 +151,68 @@ def analyze_assortment_impact(data):
 
     logging.info("Assortment impact analyzed.")
 
+def analyze_competitor_distance(data):
+    """Analyzes the impact of competitor distance on sales."""
+    # Group by 'CompetitionDistance' and calculate average sales
+    distance_sales = data.groupby('CompetitionDistance')['Sales'].mean()
 
+    # Plot the results
+    plt.plot(distance_sales.index, distance_sales.values)
+    plt.xlabel('Competition Distance')
+    plt.ylabel('Average Sales')
+    plt.title('Impact of Competitor Distance on Sales')
+    plt.show()
 
+def analyze_new_competitors(data):
+    """Analyzes the impact of new competitors on sales."""
+
+    # Use all stores for the analysis
+    stores_with_new_competitors = data.dropna(subset=['Sales', 'Date', 'CompetitionOpenSinceYear', 'CompetitionOpenSinceMonth'])
+
+    # Ensure 'Date' is in datetime format
+    stores_with_new_competitors['Date'] = pd.to_datetime(stores_with_new_competitors['Date'])
+
+    # Create a combined date column for competition opening
+    stores_with_new_competitors['CompetitionOpenSince'] = pd.to_datetime(
+        stores_with_new_competitors['CompetitionOpenSinceYear'].astype(int).astype(str) + '-' +
+        stores_with_new_competitors['CompetitionOpenSinceMonth'].astype(int).astype(str), format='%Y-%m', errors='coerce'
+    )
+
+    # Calculate time since competitor opening
+    stores_with_new_competitors['TimeSinceCompetitorOpening'] = stores_with_new_competitors['Date'] - stores_with_new_competitors['CompetitionOpenSince']
+
+    # Filter out rows where competition opening date is after the sales date
+    stores_with_new_competitors = stores_with_new_competitors.dropna(subset=['CompetitionOpenSince', 'TimeSinceCompetitorOpening'])
+
+    # Group by store, store type, and assortment, and calculate sales differences
+    def sales_difference(group):
+        pre_competition_sales = group.loc[group['TimeSinceCompetitorOpening'] < pd.Timedelta(days=0), 'Sales']
+        post_competition_sales = group.loc[group['TimeSinceCompetitorOpening'] >= pd.Timedelta(days=0), 'Sales']
+        if len(pre_competition_sales) > 0 and len(post_competition_sales) > 0:
+            return pre_competition_sales.mean() - post_competition_sales.mean()
+        else:
+            return np.nan  # Return NaN if no pre or post data
+
+    grouped_data = stores_with_new_competitors.groupby(['Store']).apply(sales_difference).dropna()
+
+    # Ensure we have data for t-test
+    if grouped_data.empty:
+        print("No valid data available for t-test.")
+        return
+
+    # Perform t-test
+    t_statistic, p_value = scipy.stats.ttest_1samp(grouped_data, 0)
+
+    # Print results
+    print("T-statistic:", t_statistic)
+    print("P-value:", p_value)
+
+    # Visualize results
+    plt.figure(figsize=(10, 6))
+    plt.boxplot(grouped_data)
+    plt.xlabel('Store Group')
+    plt.ylabel('Sales Difference')
+    plt.title('Impact of New Competitors on Sales')
+    plt.show()
 
 
