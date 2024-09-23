@@ -67,3 +67,11 @@ INFO:root:Feature engineering completed for dataset of shape (41088, 14)
 2024-09-23 23:47:56,980 - INFO - Categorical encoding completed with columns: ['DayOfWeek', 'Open', 'Promo', 'SchoolHoliday', 'Year', 'Month', 'Day', 'IsWeekend', 'IsBeginningOfMonth', 'IsEndOfMonth', 'Id', 'StateHoliday_a', 'StateHoliday_b', 'StateHoliday_c']
 2024-09-23 23:50:00,238 - INFO - Model training completed
 2024-09-23 23:50:02,813 - INFO - Model evaluation: RMSE = 2444.1386896772933
+2024-09-24 00:02:44,852 - INFO - Data loaded successfully
+2024-09-24 00:02:45,169 - INFO - Feature engineering completed for dataset of shape (1017209, 15)
+2024-09-24 00:02:45,186 - INFO - Feature engineering completed for dataset of shape (41088, 14)
+2024-09-24 00:02:45,250 - INFO - Missing values handled
+2024-09-24 00:02:45,253 - INFO - Missing values handled
+2024-09-24 00:02:45,797 - INFO - Categorical encoding completed with columns: ['DayOfWeek', 'Open', 'Promo', 'SchoolHoliday', 'Year', 'Month', 'Day', 'IsWeekend', 'IsBeginningOfMonth', 'IsEndOfMonth', 'Id', 'StateHoliday_a', 'StateHoliday_b', 'StateHoliday_c']
+2024-09-24 00:05:27,527 - INFO - Model training completed
+2024-09-24 00:05:30,984 - INFO - Model evaluation: RMSE = 2444.1386896772933
