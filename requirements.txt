@@ -5,3 +5,6 @@ seaborn
 scipy
 joblib
 statsmodels
+tensorflow
+flask
+scikit-learn
